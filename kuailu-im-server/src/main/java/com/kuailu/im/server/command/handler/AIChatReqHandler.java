@@ -89,7 +89,7 @@ public class AIChatReqHandler extends AbstractCmdHandler {
             reader = new BufferedReader(new InputStreamReader(inputStream));
             String line = "";
             while ((line = reader.readLine()) != null) {
-                //只需要关注三种数据  [sql]  [table] [text]    [summary]asd
+                //只需要关注三种数据  [sql]  [table] [text]    [summary]
                 log.info("算法返回内容 {}", line);
                 Map<String, String> dataMap = new HashMap();
                 if (line.contains(AIAnswerTagEnum.DONE.getTag())) {
