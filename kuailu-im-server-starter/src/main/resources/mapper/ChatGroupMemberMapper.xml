@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kuailu.im.server.mapper.ChatGroupMemberMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.kuailu.im.server.model.entity.ChatGroupMember">
+        <id column="id" property="id"/>
+        <result column="group_id" property="groupId"/>
+        <result column="user_name" property="userName"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_no" property="userNo"/>
+        <result column="role_type" property="roleType"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id,user_id, group_id, user_name,user_no, role_type, created_by, created_time, updated_by, updated_time
+    </sql>
+
+    <select id="getUserChatGroup" parameterType="java.lang.String"
+            resultType="com.kuailu.im.core.packets.ChatGroupUserIdDto">
+        SELECT cg.*,
+        GROUP_CONCAT(icm2.user_id) AS otherUserIds
+        FROM im_chat_group_member icm
+        JOIN im_chat_group_member icm2 ON icm.group_id = icm2.group_id
+        AND icm.user_id != icm2.user_id
+        JOIN im_chat_group cg
+        ON cg.group_id = icm2.group_id
+        WHERE
+        icm.user_id = #{userId}
+        GROUP BY
+        icm.group_id
+    </select>
+
+    <select id="getPrivateGroup" parameterType="hashmap"
+            resultType="com.kuailu.im.core.packets.PrivateGroupDto">
+        select a.group_id, GROUP_CONCAT(a.user_id) as users
+        from im_chat_group b
+        left join im_chat_group_member a on b.group_id = a.group_id
+        where b.chat_type = 0
+        group by a.group_id
+        HAVING GROUP_CONCAT(a.user_id) = concat(#{userId}, ',', #{memberId})
+        or GROUP_CONCAT(a.user_id) = concat(#{memberId}, ',', #{userId})
+        limit 1
+    </select>
+
+
+    <insert id="saveGroupMemberBatch" parameterType="java.util.List">
+        INSERT INTO
+        im_chat_group_member
+        (
+        user_id,group_id,user_name,role_type,created_time
+        )
+        VALUES
+        <foreach collection="groupMemberList" item="items" separator=",">
+            (
+            <if test="items.userId != null">
+                #{items.userId, jdbcType=VARCHAR},
+            </if>
+            <if test="items.groupId != null">
+                #{items.groupId, jdbcType=VARCHAR},
+            </if>
+            <if test="items.userName != null">
+                #{items.userName, jdbcType=VARCHAR},
+            </if>
+            <if test="items.roleType != null">
+                #{items.roleType, jdbcType=INTEGER},
+            </if>
+            <if test="items.createdTime != null">
+                #{items.createdTime}
+            </if>
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        user_id = VALUES(user_id),
+        group_id = VALUES(group_id),
+        role_type = VALUES(role_type)
+    </insert>
+
+</mapper>

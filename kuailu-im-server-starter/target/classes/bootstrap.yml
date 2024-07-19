@@ -1,0 +1,49 @@
+server:
+  port: 6689
+  servlet:
+    encoding:
+      force: true
+      charset: utf-8
+# Spring
+spring:
+  application:
+    # 应用名称
+    name: kuailu-im-server
+  profiles:
+    # 环境配置
+    active: ${NACOS_PROFILE:prd}
+  cloud:
+    nacos:   #用服务器上环境变量
+      discovery:
+        ephemeral: false
+        #        username: imserver
+        #        password: imserver@123
+        namespace: ${NACOS_NAME_SPACE}
+        server-addr: ${NACOS_HOST}
+      username: ${NACOS_USER}
+      password: ${NACOS_PASSWORD}
+      config:
+        # 配置中心地址
+        server-addr: ${NACOS_HOST}
+        # 配置文件格式
+        file-extension: yml
+        namespace: ${NACOS_NAME_SPACE}
+
+# 由于Spring Boot 2.x默认只暴露 /health 以及 /info 端点，
+# 而日志控制需要用到 /loggers 端点，故而需要设置将其暴露。当然把loggers替换成*也是可以的；开启所有！
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'loggers'
+#         include: '*'
+
+  endpoint:
+    health:
+      show-details: always
+logging:
+  level:
+    org:
+      springframework:
+        boot:
+          autoconfigure: INFO

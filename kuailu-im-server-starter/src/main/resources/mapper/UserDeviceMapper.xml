@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kuailu.im.server.mapper.UserDeviceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.kuailu.im.server.model.entity.UserDevice">
+        <id column="id" property="id" />
+        <result column="app_key" property="appKey" />
+        <result column="user_name" property="userName" />
+        <result column="device_id" property="deviceId" />
+        <result column="conversation_id" property="conversationId" />
+        <result column="read_message_time_ms" property="readMessageTimeMs" />
+        <result column="first_message_time_ms" property="firstMessageTimeMs" />
+        <result column="is_ignore" property="isIgnore" />
+        <result column="created_by" property="createdBy" />
+        <result column="created_time" property="createdTime" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="updated_time" property="updatedTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, app_key, user_name, device_id, conversation_id, read_message_time_ms, first_message_time_ms, is_ignore, created_by, created_time, updated_by, updated_time
+    </sql>
+
+</mapper>

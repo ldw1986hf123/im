@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kuailu.im.server.mapper.ChatGroupMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.kuailu.im.server.model.entity.ChatGroup">
+        <id column="id" property="id" />
+        <result column="app_key" property="appKey" />
+        <result column="biz_type" property="bizType" />
+        <result column="group_id" property="groupId" />
+        <result column="group_name" property="groupName" />
+        <result column="avatar" property="avatar" />
+        <result column="chat_type" property="chatType" />
+        <result column="group_owner" property="groupOwner" />
+        <result column="max_members" property="maxMembers" />
+        <result column="status" property="status" />
+<!--        <result column="start_mute_time" property="startMuteTime" />-->
+        <result column="mute_duration" property="muteDuration" />
+        <result column="description" property="description" />
+        <result column="ext" property="ext" />
+        <result column="created_by" property="createdBy" />
+        <result column="created_time" property="createdTime" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="updated_time" property="updatedTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, app_key, biz_type, group_id,avatar, group_name, chat_type, group_owner, max_members, status,  mute_duration, description, ext, created_by, created_time, updated_by, updated_time
+    </sql>
+
+    <select id="getGroupByName" parameterType="hashmap" resultType="java.util.HashMap">
+        SELECT icg.group_id as groupId, icg.group_name as groupName, icg.avatar, '' as searchDesc
+        FROM im_chat_group icg
+        INNER JOIN (select group_id from im_chat_group_member where user_id = #{userId} and user_name NOT LIKE CONCAT('%', #{searchKey}, '%')) icgm
+        ON icgm.group_id = icg.group_id
+        WHERE icg.chat_type in (1,3) AND icg.group_name = #{searchKey}
+    </select>
+
+    <select id="getGroupLikeName" parameterType="hashmap" resultType="java.util.HashMap">
+        SELECT icg.group_id as groupId, icg.group_name as groupName, icg.avatar, '' as searchDesc
+        FROM im_chat_group icg
+        INNER JOIN (select group_id from im_chat_group_member where user_id = #{userId} and user_name NOT LIKE CONCAT('%', #{searchKey}, '%')) icgm
+        ON icgm.group_id = icg.group_id
+        WHERE icg.chat_type in (1,3) AND icg.group_name LIKE CONCAT('%', #{searchKey}, '%') AND icg.group_name != #{searchKey}
+    </select>
+
+    <select id="getGroupInclUserName" parameterType="hashmap" resultType="java.util.HashMap">
+        SELECT icg.group_id as groupId, icg.group_name as groupName, icg.avatar, concat('包含:', icgm.searchDesc) as searchDesc
+        FROM im_chat_group icg
+        INNER JOIN (select group_id,GROUP_CONCAT(user_name SEPARATOR ',') as searchDesc from im_chat_group_member
+        where user_id = #{userId} AND user_name LIKE CONCAT('%', #{searchKey}, '%') group by group_id) icgm
+        ON icgm.group_id = icg.group_id
+        WHERE icg.chat_type = 1
+    </select>
+
+</mapper>

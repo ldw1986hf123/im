@@ -1,0 +1,5 @@
+com\kuailu\im\server\starter\service\LoginServiceProcessor.class
+com\kuailu\im\server\starter\command\KuailuWsHandshakeProcessor.class
+com\kuailu\im\server\listener\ImKuailuGroupListener.class
+com\kuailu\im\server\starter\IMServerStarter.class
+com\kuailu\im\server\listener\ImKuailuUserListener.class
