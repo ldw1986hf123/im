@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kuailu.im.server.mapper.ChatMsgMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.kuailu.im.server.model.entity.ChatMsg">
+        <id column="id" property="id"/>
+        <result column="message_id" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="conversation_id" property="conversationId"/>
+        <result column="chat_type" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result column="sender" property="sender"/>
+        <result column="sender_name" property="senderName" jdbcType="VARCHAR"  />
+        <result column="receiver" property="receiver"/>
+        <result column="msg_type" property="msgType"  javaType="java.lang.Integer" jdbcType="INTEGER" />
+        <result column="opera_type" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="msg" property="te"/>
+        <result column="status" property="status"/>
+        <result column="show_side" property="showSide"/>
+        <result column="send_time" property="sendTime"/>
+        <result column="msg_send_status" property="msgSendStatus"/>
+        <result column="is_read" property="isRead" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_time"   jdbcType="TIMESTAMP"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="msg_content" property="msgContent"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, app_key, message_id, conversation_id, chat_type, sender,sender_name, receiver, msg_type, msg, opera_type,
+        show_side,
+        ext, text_content, status, send_time, msg_send_status,is_read, created_by, created_time, updated_by, updated_time, msg_content
+    </sql>
+
+    <select id="getPrivateUserGroupUnReadMsgCount" parameterType="hashmap" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM im_chat_msg m
+        WHERE m.id > (SELECT a.id
+                      FROM im_chat_msg a
+                      WHERE a.message_id = #{messageId}
+                      order by a.id desc
+            limit 1 )
+          and m.group_id=#{groupId}
+          and m.receiver=#{userId}
+          and m.chat_type=0
+    </select>
+
+    <select id="getPublicUserGroupUnReadMsgCount" parameterType="hashmap" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM im_chat_msg m
+        WHERE m.id > (SELECT a.id
+                      FROM im_chat_msg a
+                      WHERE a.message_id = #{messageId}
+                      order by a.id desc
+            limit 1 )
+          and m.group_id=#{groupId}
+          and m.sender!=#{userId}
+          and m.chat_type=1
+    </select>
+
+    <select id="getConversationList"  resultType="com.kuailu.im.server.model.entity.ChatMsg">
+        SELECT
+            MAX(created_time) as createdTime,
+            MAX(message_id) as messageId,
+            MAX(chat_type) as chatType,
+            MAX(id) as id,
+            MAX(group_id) as groupId,
+            MAX(msg) as msg,
+            MAX(msg_type) as msgType,
+            MAX(sender_name) as senderName,
+            MAX(sender) as sender,
+            MAX(is_read) as isRead,
+            receiver
+        FROM
+            im_chat_msg
+        WHERE sender= #{sender}
+        GROUP BY
+            receiver
+        ORDER BY MAX(created_time) desc
+    </select>
+
+    <select id="getPrivateChatRecords" parameterType="hashmap" resultType="java.util.HashMap">
+        SELECT tmp.groupId, tmp.chatType, tmp.searchCount, tmp.groupName, tmp.avatar, tmp.lastTime, icm.friend FROM
+            (SELECT m.group_id as groupId, CAST(m.chat_type AS CHAR(1)) as chatType, count(*) as searchCount, ic.conversation_name as groupName, IFNULL(g.avatar, '') AS avatar, max(m.send_time) as lastTime
+             FROM im_chat_msg m
+                      left join im_chat_group g
+                                on m.group_id = g.group_id
+                      left join (select * from im_conversation where receiver!= #{userId}) ic
+                                on g.group_id = ic.chatgroup_id
+             WHERE (m.sender = #{userId} or m.receiver = #{userId})
+               and m.chat_type in (0, 3)
+               and m.msg_content like CONCAT('%', #{searchKey}, '%')
+             group by m.group_id, m.chat_type, ic.conversation_name, g.avatar
+             having count(*) > 0) tmp
+                inner JOIN (SELECT distinct group_id, IF(sender = #{userId}, receiver, sender) as friend FROM im_chat_msg WHERE sender = #{userId} or receiver = #{userId} and chat_type = 0) icm
+                           ON tmp.groupId = icm.group_id
+        order by lastTime DESC
+    </select>
+
+
+    <select id="getPublicChatRecords" parameterType="hashmap" resultType="java.util.HashMap">
+        SELECT m.group_id as groupId, m.receiver, CAST(m.chat_type AS CHAR(1)) as chatType, count(*) as searchCount, g.group_name as groupName, IFNULL(g.avatar, '') AS avatar, max(m.send_time) as lastTime
+        FROM im_chat_msg m
+        INNER JOIN (select distinct group_id, user_id from im_chat_group_member WHERE user_id = #{userId}) f
+        on m.group_id = f.group_id
+        INNER join im_chat_group g
+        on g.group_id = f.group_id
+        WHERE  m.chat_type = 1
+        and m.msg_content like CONCAT('%', #{searchKey}, '%')
+        group by m.group_id, m.receiver, m.chat_type, g.group_name, g.avatar
+        having count(*) > 0
+        order by lastTime desc
+    </select>
+
+    <select id="getPublicChatRecordDetail" parameterType="hashmap" resultType="java.util.HashMap">
+        SELECT m.group_id as groupId, m.message_id as messageId, convert(m.msg using utf8) as msg, iua.avatar_url as avatar, iua.user_name as name, UNIX_TIMESTAMP(m.send_time) * 1000 as sendTime
+        FROM im_chat_msg m
+        INNER JOIN (select distinct group_id, user_id from im_chat_group_member WHERE user_id = #{userId}) icgm
+        on m.group_id = icgm.group_id
+        INNER join im_chat_group icg
+        on m.group_id = icg.group_id
+        INNER join im_user_account iua
+        on m.sender = iua.user_id
+        WHERE m.chat_type = 1
+          and m.receiver = icgm.group_id
+          and m.msg_content like concat('%', #{searchKey}, '%')
+          and m.group_id = #{groupId}
+        order by sendTime desc
+    </select>
+
+    <select id="getPrivateChatRecordDetail" parameterType="hashmap" resultType="java.util.HashMap">
+        SELECT m.group_id as groupId, m.message_id as messageId, convert(m.msg using utf8) as msg, iua.avatar_url as avatar, iua.user_name as name, UNIX_TIMESTAMP(m.send_time) * 1000 as sendTime
+        FROM im_chat_msg m
+        INNER JOIN im_user_account iua
+        on m.sender = iua.user_id
+        WHERE m.chat_type in (0, 3)
+          and (m.receiver = #{userId} or m.sender = #{userId})
+          and m.msg_content like concat('%', #{searchKey}, '%')
+          and m.group_id = #{groupId}
+        order by sendTime desc
+    </select>
+
+</mapper>

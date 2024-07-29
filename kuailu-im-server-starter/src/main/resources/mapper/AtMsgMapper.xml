@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kuailu.im.server.mapper.AtMsgMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.kuailu.im.server.model.entity.AtMsg">
+        <id column="id" property="id"/>
+        <result column="msg_id" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="at_user" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="group_id" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="conversation_id" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="is_read" property="isRead" javaType="java.lang.Integer" jdbcType="INTEGER"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="created_time" jdbcType="TIMESTAMP"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, msg_id, at_user,group_id,conversation_id, is_read, created_by, created_time, updated_by, updated_time
+    </sql>
+
+</mapper>

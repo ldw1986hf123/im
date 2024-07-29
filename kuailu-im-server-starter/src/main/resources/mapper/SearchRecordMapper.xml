@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kuailu.im.server.mapper.SearchRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.kuailu.im.server.model.entity.SearchRecord">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="search_key" property="searchKey" />
+        <result column="created_by" property="createdBy" />
+        <result column="created_time" property="createdTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, search_key, created_by, created_time
+    </sql>
+
+    <select id="getTop10Records" parameterType="hashmap" resultType="java.lang.String">
+        SELECT search_key AS searchKey, created_time
+        FROM im_search_record
+        WHERE user_id = #{userId}
+        ORDER BY created_time DESC
+        limit 10
+    </select>
+
+</mapper>
