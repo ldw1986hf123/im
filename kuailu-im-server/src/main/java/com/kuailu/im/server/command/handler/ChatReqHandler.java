@@ -77,7 +77,7 @@ public class ChatReqHandler extends AbstractCmdHandler {
 
 
         ImPacket chatPacket = new ImPacket(new RespBody(Command.COMMAND_CHAT_REQ, pushMessage).toByte());
-        /************************** 构建推送给前端的结构体 ********************/
+        /************************** 构建推送给前端的结asdasd构体 ********************/
 
         //todo,序列号是干什么用的设置同步序列号;
         chatPacket.setSynSeq(packet.getSynSeq());
