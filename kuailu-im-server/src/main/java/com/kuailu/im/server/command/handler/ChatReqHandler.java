@@ -58,7 +58,7 @@ public class ChatReqHandler extends AbstractCmdHandler {
         /**************************通过这句，DefaultAsyncChatMessageProcessor 中的process方法才会得到异步执行，目前主要是异步保持到数据库和redis*/
 
 
-        /************************** 构建推送给前端的asdad结构体 ********************/
+        /************************** 构建推送给前端的结构体 ********************/
         PushMessage pushMessage = BeanUtil.copyProperties(chatReqParam, PushMessage.class);
         MessageBody messageBody = pushMessage.getMessageBody();
         if (MessageTypeEnum.MERGE_REDIRECT.getCode() == msgType) {
